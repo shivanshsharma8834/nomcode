@@ -1,2 +1,3 @@
 github_private_key 
 .venv
+.env
