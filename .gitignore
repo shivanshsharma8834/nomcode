@@ -1,3 +1,4 @@
 github_private_key 
 .venv
 .env
+__pycache__
