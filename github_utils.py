@@ -38,6 +38,37 @@ class GithubAuthHelper:
             response.raise_for_status()
             return response.json()["token"]
 
+    async def get_pr_files(self, installation_id: int, owner: str, repo: str, pull_number: int) -> list[dict]:
+        """
+        Fetches the list of files changed in a PR. 
+        This provides the filename, status (added/modified/removed), and patch (diff) for each file.
+        """
+        token = await self.get_installation_token(installation_id)
+        url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pull_number}/files"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                url,
+                headers={"Authorization": f"token {token}", "Accept": "application/vnd.github.v3+json"}
+            )
+            response.raise_for_status()
+            return response.json()
+    
+    async def get_file_content(self, installation_id: int, owner: str, repo: str, path: str, ref: str) -> str: 
+        """
+        Fetches the RAW content of a specific file at a specific commit (ref).
+        """
+        token = await self.get_installation_token(installation_id)
+        url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={ref}"
+
+        async with httpx.AsyncClient() as client: 
+            response = await client.get(
+                url,
+                headers={"Authorization": f"token {token}", "Accept": "application/vnd.github.v3.raw"}
+            )
+            response.raise_for_status()
+            return response.text
+
 def validate_signature(payload: bytes, signature_header: str, secret: str):
     """Validates the GitHub webhook signature to ensure request integrity."""
     if not signature_header:
